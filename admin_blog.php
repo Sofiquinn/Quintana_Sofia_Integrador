@@ -1,7 +1,6 @@
 <?php
 require_once 'includes/admin_auth.php'; // protege con login y trae $mysqli
 
-// ---------- Variables para el formulario ----------
 $id = '';
 $titulo = '';
 $slug = '';
@@ -14,7 +13,7 @@ $contenido_html = '';
 $es_destacado = 0;
 $mensaje = '';
 
-// ---------- Eliminar artículo ----------
+//  Eliminar artículo 
 if (isset($_GET['eliminar'])) {
     $borrarId = (int)$_GET['eliminar'];
     $stmt = $mysqli->prepare("DELETE FROM blog_articulos WHERE id = ?");
@@ -25,7 +24,7 @@ if (isset($_GET['eliminar'])) {
     exit;
 }
 
-// ---------- Cargar artículo para edición ----------
+// Cargar artículo para edición 
 if (isset($_GET['editar'])) {
     $editarId = (int)$_GET['editar'];
     $stmt = $mysqli->prepare("SELECT * FROM blog_articulos WHERE id = ?");
@@ -47,7 +46,7 @@ if (isset($_GET['editar'])) {
     $stmt->close();
 }
 
-// ---------- Procesar formulario (alta / modificación) ----------
+// Procesar formulario (alta / modificación)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id                = $_POST['id'] ?? '';
     $titulo            = trim($_POST['titulo'] ?? '');
@@ -60,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contenido_html    = trim($_POST['contenido_html'] ?? '');
     $es_destacado      = isset($_POST['es_destacado']) ? 1 : 0;
 
-    // --- Soporte subir imagen desde el explorador (opcional) ---
+    // Subir imagen desde el explorador (opcional) 
     if (!empty($_FILES['imagen_file']) && $_FILES['imagen_file']['error'] === UPLOAD_ERR_OK) {
         $tmpName  = $_FILES['imagen_file']['tmp_name'];
         $origName = basename($_FILES['imagen_file']['name']);
@@ -79,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($id === '') {
-        // INSERT
+        // Insert
         $stmt = $mysqli->prepare("
             INSERT INTO blog_articulos
             (titulo, slug, categoria, fecha_publicacion, fecha_visible,
@@ -102,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
         $mensaje = 'Artículo creado correctamente.';
     } else {
-        // UPDATE
+        // Update
         $stmt = $mysqli->prepare("
             UPDATE blog_articulos
             SET titulo = ?, slug = ?, categoria = ?, fecha_publicacion = ?,
@@ -135,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $es_destacado = 0;
 }
 
-// ---------- Listado de artículos ----------
+// Listado de artículos 
 $resArticulos = $mysqli->query("SELECT * FROM blog_articulos ORDER BY fecha_publicacion DESC, id DESC");
 ?>
 <!DOCTYPE html>
@@ -148,129 +147,168 @@ $resArticulos = $mysqli->query("SELECT * FROM blog_articulos ORDER BY fecha_publ
 </head>
 <body class="admin-body">
 <div class="admin-shell">
-
-    <div class="top-bar">
-        <h1>Administración de Blog</h1>
-        <div class="top-links">
-            <a href="admin_blog_comentarios.php" class="pill">Admin Blog Comentarios</a>
-            <a href="admin_proyectos.php" class="pill">Admin Proyectos</a>
-            <a href="admin_contactos.php" class="pill">Contactos</a>
-            <a href="admin_logout.php" class="pill pill--danger">Cerrar sesión</a>
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <div class="admin-sidebar-title">Ecos Arquitectura</div>
+            <div class="admin-sidebar-sub">Panel de administración</div>
         </div>
-    </div>
 
-    <?php if ($mensaje): ?>
-        <div class="mensaje"><?php echo htmlspecialchars($mensaje); ?></div>
-    <?php endif; ?>
+        <nav class="admin-sidebar-nav">
+            <a href="admin_proyectos.php">
+                <span>Proyectos</span>
+            </a>
+            <a href="admin_blog.php" class="activo">
+                <span>Blog</span>
+            </a>
+            <a href="admin_blog_comentarios.php">
+                <span>Comentarios</span>
+            </a>
+            <a href="admin_contactos.php">
+                <span>Contactos</span>
+            </a>
+        </nav>
 
-    <div class="admin-layout">
-        <!-- Formulario -->
-        <form method="post" class="admin-form" enctype="multipart/form-data">
-            <h2><?php echo $id ? 'Editar artículo' : 'Nuevo artículo'; ?></h2>
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+        <div class="admin-sidebar-footer">
+            Sesión iniciada · Admin
+        </div>
+    </aside>
 
-            <label for="titulo">Título</label>
-            <input type="text" name="titulo" id="titulo" required
-                   value="<?php echo htmlspecialchars($titulo); ?>">
-
-            <div class="fila">
-                <div>
-                    <label for="categoria">Categoría</label>
-                    <input type="text" name="categoria" id="categoria"
-                           placeholder="Sostenibilidad, Diseño, Tendencias..."
-                           value="<?php echo htmlspecialchars($categoria); ?>">
-                </div>
-                <div>
-                    <label for="slug">Slug (opcional)</label>
-                    <input type="text" name="slug" id="slug"
-                           placeholder="arquitectura-sostenible"
-                           value="<?php echo htmlspecialchars($slug); ?>">
-                </div>
+    <main class="admin-main">
+        <div class="top-bar">
+            <h1>Administración de Blog</h1>
+            <div class="top-bar-actions">
+                <a href="admin_logout.php" class="top-pill logout-link">Cerrar sesión</a>
             </div>
+        </div>
 
-            <div class="fila">
-                <div>
-                    <label for="fecha_publicacion">Fecha publicación (real)</label>
-                    <input type="date" name="fecha_publicacion" id="fecha_publicacion"
-                           value="<?php echo htmlspecialchars($fecha_publicacion); ?>">
+        <?php if ($mensaje): ?>
+            <div class="mensaje"><?php echo htmlspecialchars($mensaje); ?></div>
+        <?php endif; ?>
+
+        <div class="admin-layout">
+            <form method="post" class="admin-form" enctype="multipart/form-data">
+                <h2><?php echo $id ? 'Editar artículo' : 'Nuevo artículo'; ?></h2>
+                <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+
+                <label for="titulo">Título</label>
+                <input type="text" name="titulo" id="titulo" required
+                       value="<?php echo htmlspecialchars($titulo); ?>">
+
+                <div class="fila">
+                    <div>
+                        <label for="categoria">Categoría</label>
+                        <input type="text" name="categoria" id="categoria"
+                               placeholder="Sostenibilidad, Diseño, Tendencias..."
+                               value="<?php echo htmlspecialchars($categoria); ?>">
+                    </div>
+                    <div>
+                        <label for="slug">Slug (opcional)</label>
+                        <input type="text" name="slug" id="slug"
+                               placeholder="arquitectura-sostenible"
+                               value="<?php echo htmlspecialchars($slug); ?>">
+                    </div>
                 </div>
-                <div>
-                    <label for="fecha_visible">Fecha visible (texto)</label>
-                    <input type="text" name="fecha_visible" id="fecha_visible"
-                           placeholder="23 de Septiembre, 2025"
-                           value="<?php echo htmlspecialchars($fecha_visible); ?>">
+
+                <div class="fila">
+                    <div>
+                        <label for="fecha_publicacion">Fecha publicación (real)</label>
+                        <input type="date" name="fecha_publicacion" id="fecha_publicacion"
+                               value="<?php echo htmlspecialchars($fecha_publicacion); ?>">
+                    </div>
+                    <div>
+                        <label for="fecha_visible">Fecha visible (texto)</label>
+                        <input type="text" name="fecha_visible" id="fecha_visible"
+                               placeholder="23 de Septiembre, 2025"
+                               value="<?php echo htmlspecialchars($fecha_visible); ?>">
+                    </div>
                 </div>
-            </div>
 
-            <label for="imagen_portada">Imagen portada (ruta)</label>
-            <input type="text" name="imagen_portada" id="imagen_portada"
-                   placeholder="imagenes/arquitectura_sostenible.jpg"
-                   value="<?php echo htmlspecialchars($imagen_portada); ?>">
+                <label for="imagen_portada">Imagen portada (ruta)</label>
+                <input type="text" name="imagen_portada" id="imagen_portada"
+                       placeholder="imagenes/arquitectura_sostenible.jpg"
+                       value="<?php echo htmlspecialchars($imagen_portada); ?>">
 
-            <label for="imagen_file">O subir nueva imagen</label>
-            <input type="file" name="imagen_file" id="imagen_file" accept="image/*">
-            <small class="help-text">
-                Si subís un archivo, se guardará la ruta automáticamente y se usará como portada.
-            </small>
+                <label for="imagen_file">O subir nueva imagen</label>
+                <input type="file" name="imagen_file" id="imagen_file" accept="image/*">
+                <small class="help-text">
+                    Si subís un archivo, se guardará la ruta automáticamente y se usará como portada.
+                </small>
 
-            <label for="resumen">Resumen (para listado)</label>
-            <textarea name="resumen" id="resumen"><?php echo htmlspecialchars($resumen); ?></textarea>
-
-            <label for="contenido_html">Contenido (HTML simple o texto)</label>
-            <textarea name="contenido_html" id="contenido_html"><?php echo htmlspecialchars($contenido_html); ?></textarea>
-
-            <div class="check-line">
-                <label>
-                    <input type="checkbox" name="es_destacado" value="1"
-                        <?php echo $es_destacado ? 'checked' : ''; ?>>
-                    Marcar como artículo destacado (se mostrará arriba en la página de Blog)
-                </label>
-            </div>
-
-            <button type="submit"><?php echo $id ? 'Guardar cambios' : 'Crear artículo'; ?></button>
-        </form>
-
-        <!-- Listado -->
-        <div class="tabla-wrap">
-            <h2>Listado de artículos</h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Título / Categoría</th>
-                    <th>Fecha visible</th>
-                    <th>Destacado</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php while ($a = $resArticulos->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo (int)$a['id']; ?></td>
-                        <td>
-                            <strong><?php echo htmlspecialchars($a['titulo']); ?></strong><br>
-                            <span class="tag-mini"><?php echo htmlspecialchars($a['categoria']); ?></span>
-                        </td>
-                        <td><?php echo htmlspecialchars($a['fecha_visible']); ?></td>
-                        <td><?php echo $a['es_destacado'] ? 'Sí' : 'No'; ?></td>
-                        <td>
-                            <a class="btn-small btn-small--edit"
-                               href="admin_blog.php?editar=<?php echo (int)$a['id']; ?>">Editar</a>
-                            <a class="btn-small btn-small--del"
-                               href="admin_blog.php?eliminar=<?php echo (int)$a['id']; ?>"
-                               onclick="return confirm('¿Seguro que querés eliminar este artículo?');">
-                                Eliminar
-                            </a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-                <?php if ($resArticulos->num_rows === 0): ?>
-                    <tr><td colspan="5">No hay artículos cargados.</td></tr>
+                <?php if ($imagen_portada): ?>
+                    <div class="admin-preview-grid">
+                        <div class="admin-preview">
+                            <span>Portada</span>
+                            <img src="<?php echo htmlspecialchars($imagen_portada); ?>" alt="Portada artículo">
+                        </div>
+                    </div>
                 <?php endif; ?>
-                </tbody>
-            </table>
+
+                <label for="resumen">Resumen (para listado)</label>
+                <textarea name="resumen" id="resumen"><?php echo htmlspecialchars($resumen); ?></textarea>
+
+                <label for="contenido_html">Contenido (HTML simple o texto)</label>
+                <textarea name="contenido_html" id="contenido_html"><?php echo htmlspecialchars($contenido_html); ?></textarea>
+
+                <div class="check-line">
+                    <label>
+                        <input type="checkbox" name="es_destacado" value="1"
+                            <?php echo $es_destacado ? 'checked' : ''; ?>>
+                        Marcar como artículo destacado (se mostrará arriba en la página de Blog)
+                    </label>
+                </div>
+
+                <button type="submit"><?php echo $id ? 'Guardar cambios' : 'Crear artículo'; ?></button>
+            </form>
+
+            <div class="tabla-wrap">
+                <h2>Listado de artículos</h2>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Portada</th>
+                        <th>Título / Categoría</th>
+                        <th>Fecha visible</th>
+                        <th>Destacado</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php while ($a = $resArticulos->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo (int)$a['id']; ?></td>
+                            <td>
+                                <?php if (!empty($a['imagen_portada'])): ?>
+                                    <img class="thumb-mini"
+                                         src="<?php echo htmlspecialchars($a['imagen_portada']); ?>"
+                                         alt="<?php echo htmlspecialchars($a['titulo']); ?>">
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <strong><?php echo htmlspecialchars($a['titulo']); ?></strong><br>
+                                <span class="tag-mini"><?php echo htmlspecialchars($a['categoria']); ?></span>
+                            </td>
+                            <td><?php echo htmlspecialchars($a['fecha_visible']); ?></td>
+                            <td><?php echo $a['es_destacado'] ? 'Sí' : 'No'; ?></td>
+                            <td>
+                                <a class="btn-small btn-small--edit"
+                                   href="admin_blog.php?editar=<?php echo (int)$a['id']; ?>">Editar</a>
+                                <a class="btn-small btn-small--del"
+                                   href="admin_blog.php?eliminar=<?php echo (int)$a['id']; ?>"
+                                   onclick="return confirm('¿Seguro que querés eliminar este artículo?');">
+                                    Eliminar
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                    <?php if ($resArticulos->num_rows === 0): ?>
+                        <tr><td colspan="6">No hay artículos cargados.</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </main>
 </div>
 </body>
 </html>

@@ -35,14 +35,14 @@ if (isset($_GET['eliminar'])) {
 }
 
 // Filtros simples (todos/solo no leídos)
-$filtro = $_GET['filtro'] ?? 'todos'; 
+$filtro = $_GET['filtro'] ?? 'todos';
 
 $sql = "SELECT * FROM contactos";
 if ($filtro === 'no_leidos') {
     // Solo los que no están leídos
     $sql .= " WHERE leido = 0";
 }
-$sql .= " ORDER BY fecha_envio DESC, id DESC"; 
+$sql .= " ORDER BY fecha_envio DESC, id DESC";
 
 $resContactos = $mysqli->query($sql);
 ?>
@@ -55,14 +55,38 @@ $resContactos = $mysqli->query($sql);
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body class="admin-body">
-    <div class="admin-shell">
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <div class="admin-sidebar-title">Ecos Arquitectura</div>
+            <div class="admin-sidebar-sub">Panel de administración</div>
+        </div>
+
+        <nav class="admin-sidebar-nav">
+            <a href="admin_proyectos.php">
+                <span>Proyectos</span>
+            </a>
+            <a href="admin_blog.php">
+                <span>Blog</span>
+            </a>
+            <a href="admin_blog_comentarios.php">
+                <span>Comentarios</span>
+            </a>
+            <a href="admin_contactos.php" class="activo">
+                <span>Contactos</span>
+            </a>
+        </nav>
+
+        <div class="admin-sidebar-footer">
+            Sesión iniciada · Admin
+        </div>
+    </aside>
+
+    <main class="admin-main">
         <div class="top-bar">
             <h1>Mensajes de Contacto</h1>
-            <div>
-                <!-- Navegación entre módulos del panel admin -->
-                <a href="admin_proyectos.php">Admin Proyectos</a>
-                <a href="admin_blog.php">Admin Blog</a>
-                <a class="logout-link" href="admin_logout.php">Cerrar sesión</a>
+            <div class="top-bar-actions">
+                <a href="admin_logout.php" class="top-pill logout-link">Cerrar sesión</a>
             </div>
         </div>
 
@@ -157,6 +181,7 @@ $resContactos = $mysqli->query($sql);
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
+</div>
 </body>
 </html>
